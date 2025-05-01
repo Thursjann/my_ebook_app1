@@ -15,6 +15,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> allBooks = [];
   String selectedCategory = 'ทั้งหมด';
   TextEditingController searchController = TextEditingController();
+  bool isLoading = true;
+  String errorMessage = '';
 
   final List<String> categories = [
     'ทั้งหมด',
@@ -31,14 +33,48 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadBooks() async {
-  final String response = await rootBundle.loadString('assets/books.json');
-  final data = json.decode(response) as List;
-  print("โหลดได้ ${data.length} เล่ม");
-  print("ตัวอย่างหนังสือ: ${data[0]}");
-  setState(() {
-    allBooks = data;
-  });
-}
+    try {
+      final String response = await rootBundle.loadString('assets/books.json');
+      final Map<String, dynamic> data = json.decode(response);
+
+      // แปลงข้อมูลจาก Map เป็น List โดยรวมทุกหมวดหมู่
+      List<dynamic> allBooksList = [];
+      data.forEach((category, books) {
+        allBooksList.addAll(books);
+      });
+
+      setState(() {
+        allBooks = allBooksList;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = 'ไม่สามารถโหลดข้อมูล: $e';
+        isLoading = false;
+        loadSampleBooks();
+      });
+    }
+  }
+
+  void loadSampleBooks() {
+    allBooks = [
+      {
+        "title": "หนังสือตัวอย่าง 1",
+        "category": "การศึกษา",
+        "price": 250,
+        "image":
+            "https://hot-thai-kitchen.com/wp-content/uploads/2013/03/tom-yum-goong-blog.jpg",
+        "description": "รายละเอียดหนังสือตัวอย่าง 1"
+      },
+      {
+        "title": "หนังสือตัวอย่าง 2",
+        "category": "จิตวิทยา",
+        "price": 350,
+        "image": "https://via.placeholder.com/150?text=Book2",
+        "description": "รายละเอียดหนังสือตัวอย่าง 2"
+      },
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final searchedBooks = searchController.text.isEmpty
         ? filteredBooks
         : filteredBooks
-            .where((book) => book['title'].toLowerCase().contains(searchController.text.toLowerCase()))
+            .where((book) =>
+                book['title'].toLowerCase().contains(searchController.text.toLowerCase()))
             .toList();
 
     return Scaffold(
@@ -99,58 +136,120 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             const SizedBox(height: 16),
+            if (errorMessage.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Text(
+                  errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
             Expanded(
-              child: searchedBooks.isEmpty && searchController.text.isNotEmpty
-                  ? const Center(child: Text('ไม่พบหนังสือที่ค้นหา'))
-                  : GridView.builder(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.6,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
-                      itemCount: searchedBooks.length,
-                      itemBuilder: (context, index) {
-                        final book = searchedBooks[index];
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => BookDetailScreen(book: book),
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : searchedBooks.isEmpty
+                      ? Center(
+                          child: Text(
+                            searchController.text.isEmpty
+                                ? 'ไม่พบหนังสือในหมวดหมู่นี้'
+                                : 'ไม่พบหนังสือที่ค้นหา',
+                          ),
+                        )
+                      : GridView.builder(
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 0.5,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemCount: searchedBooks.length,
+                          itemBuilder: (context, index) {
+                            final book = searchedBooks[index];
+                            return GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => BookDetailScreen(book: book),
+                                  ),
+                                );
+                              },
+                              child: Card(
+                                elevation: 3,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.vertical(
+                                            top: Radius.circular(10)),
+                                        child: Image.network(
+                                          book['image'],
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return Center(
+                                              child: CircularProgressIndicator(
+                                                value: loadingProgress.expectedTotalBytes != null
+                                                    ? loadingProgress.cumulativeBytesLoaded /
+                                                        loadingProgress.expectedTotalBytes!
+                                                    : null,
+                                              ),
+                                            );
+                                          },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              color: Colors.grey[200],
+                                              child: const Icon(
+                                                Icons.image_not_supported,
+                                                size: 40,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 1,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(6),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              book['title'],
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '${book['price']} บาท',
+                                              style: const TextStyle(
+                                                color: Colors.green,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             );
                           },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  book['image'],
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.image_not_supported),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                book['title'],
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                '${book['price']} บาท',
-                                style: const TextStyle(color: Colors.green),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ),
             ),
           ],
         ),

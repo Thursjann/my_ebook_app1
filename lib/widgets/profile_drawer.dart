@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/login_screen.dart';
+import '../screens/favorites_screen.dart';
+import '../screens/settings_screen.dart';
+import '../screens/cart_screen.dart';
+import '../screens/help_center_screen.dart';
 
 class ProfileDrawer extends StatelessWidget {
   const ProfileDrawer({super.key});
@@ -49,17 +53,39 @@ class ProfileDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.favorite),
             title: const Text('รายการที่ชื่นชอบ'),
-            onTap: () {},
+            onTap: () {Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => FavoritesScreen()), 
+                    );
+                  },
           ),
           ListTile(
             leading: const Icon(Icons.shopping_cart),
             title: const Text('ตะกร้าสินค้า'),
-            onTap: () {},
+            onTap: () {Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => CartScreen()), 
+                    );},
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('ตั้งค่า'),
+            onTap: () {Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SettingsScreen()), 
+                    );},
           ),
           ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('ศูนย์ช่วยเหลือ'),
-            onTap: () {},
+            onTap: () {Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => HelpCenterScreen()), 
+                    );},
           ),
           const Spacer(),
           ListTile(
