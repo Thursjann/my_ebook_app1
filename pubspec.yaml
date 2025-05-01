@@ -67,6 +67,7 @@ flutter:
   assets:
     - assets/books.json
     - assets/images/default_avatar.png
+    - assets/images/StoryNest.png
 
 
 

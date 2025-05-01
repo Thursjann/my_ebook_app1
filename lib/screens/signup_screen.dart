@@ -35,15 +35,24 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("สมัครสมาชิก")),
+      appBar: AppBar(
+        backgroundColor: Colors.brown,
+        iconTheme:
+            const IconThemeData(color: Color(0xFFFFF8F0)), // สีลูกศรย้อนกลับ
+        title: const Text(
+          "สมัครสมาชิก",style: TextStyle(color: Color(0xFFFFF8F0)), // สีตัวอักษรหัว
+        ),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           children: [
+            const SizedBox(height: 16),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(labelText: "อีเมล"),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
@@ -52,10 +61,22 @@ class _SignupScreenState extends State<SignupScreen> {
             if (errorMessage != null)
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child:
-                    Text(errorMessage!, style: const TextStyle(color: Colors.red)),
+                child: Text(errorMessage!,
+                    style: const TextStyle(color: Colors.red)),
               ),
-            ElevatedButton(onPressed: signup, child: const Text("สมัคร")),
+              //ปุ่มsingin
+            const SizedBox(height: 24),
+            ElevatedButton(
+                onPressed: signup,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.brown,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  minimumSize: const Size.fromHeight(50),
+                ),
+                child: const Text("สมัคร")),
           ],
         ),
       ),

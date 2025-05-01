@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../screens/login_screen.dart';
-import '../screens/favorites_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/cart_screen.dart';
 import '../screens/help_center_screen.dart';
+import '../screens/profile_settings_screen.dart';
 
 class ProfileDrawer extends StatelessWidget {
   const ProfileDrawer({super.key});
@@ -14,95 +14,79 @@ class ProfileDrawer extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Drawer(
+      child: Container(
+        color: const Color(0xFFFFF8F0), // พื้นหลังครีม
+        child: Column(
+          children: [
+            _buildDrawerHeader(context, user),
+            _buildDrawerItem(Icons.edit, 'ตั้งค่าโปรไฟล์', () => _navigate(context, const ProfileSettingsScreen())),
+            _buildDrawerItem(Icons.shopping_cart, 'ตะกร้าสินค้า', () => _navigate(context, const CartScreen())),
+            _buildDrawerItem(Icons.settings, 'ตั้งค่า', () => _navigate(context, const SettingsScreen())),
+            _buildDrawerItem(Icons.help_outline, 'ศูนย์ช่วยเหลือ', () => _navigate(context, const HelpCenterScreen())),
+            const Spacer(),
+            _buildLogoutItem(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDrawerHeader(BuildContext context, User? user) {
+    return DrawerHeader(
+      decoration: const BoxDecoration(color: Colors.brown),
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(horizontal: 110),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Color(0xFFE0F2FF), // ฟ้าอ่อน
-            ),
-            margin: EdgeInsets.zero,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("ยังไม่เปิดให้เปลี่ยนรูป")),
-                    );
-                  },
-                  child: const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/images/default_avatar.png'),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  user?.email ?? 'ยังไม่เข้าสู่ระบบ',
-                  style: const TextStyle(color: Colors.black87, fontSize: 16),
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.edit),
-            title: const Text('ตั้งค่าโปรไฟล์'),
-            onTap: () {},
-          ),
-          ListTile(
-            leading: const Icon(Icons.favorite),
-            title: const Text('รายการที่ชื่นชอบ'),
-            onTap: () {Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => FavoritesScreen()), 
-                    );
-                  },
-          ),
-          ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('ตะกร้าสินค้า'),
-            onTap: () {Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => CartScreen()), 
-                    );},
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('ตั้งค่า'),
-            onTap: () {Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => SettingsScreen()), 
-                    );},
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('ศูนย์ช่วยเหลือ'),
-            onTap: () {Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => HelpCenterScreen()), 
-                    );},
-          ),
-          const Spacer(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('ออกจากระบบ'),
-            onTap: () async {
-              await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              }
+          GestureDetector(
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("ยังไม่เปิดให้เปลี่ยนรูป")),
+              );
             },
+            child: const CircleAvatar(
+              radius: 30,
+              backgroundImage: AssetImage('assets/images/default_avatar.png'),
+            ),
           ),
+          const SizedBox(height: 8),
+          if (user != null) 
+            Text(
+              user.email!,
+              style: const TextStyle(color: Color(0xFFFFF8F0), fontSize: 16),
+            ),
         ],
       ),
     );
   }
-}
 
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.brown),
+      title: Text(title, style: const TextStyle(color: Colors.brown)),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildLogoutItem(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.logout, color: Colors.red),
+      title: const Text('ออกจากระบบ', style: TextStyle(color: Colors.red)),
+      onTap: () async {
+        await FirebaseAuth.instance.signOut();
+        if (context.mounted) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+          );
+        }
+      },
+    );
+  }
+
+  void _navigate(BuildContext context, Widget page) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
+}

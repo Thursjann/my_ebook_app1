@@ -27,13 +27,25 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'StoryNest',
         theme: ThemeData(
-          primarySwatch: Colors.teal,
-          scaffoldBackgroundColor: Colors.white,
+          primarySwatch: Colors.brown, 
+          scaffoldBackgroundColor:const Color(0xFFFFF8F0), // ✅ พื้นหลังครีม/ขาวนวล
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(color: Colors.brown), // ข้อความทั่วไป
+            titleLarge: TextStyle(color: Colors.brown), // หัวเรื่อง
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            labelStyle: TextStyle(color: Colors.brown.shade700),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.brown),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.brown.shade200),
+            ),
+          ),
         ),
         initialRoute: '/',
         routes: {
           '/': (context) => const LoginScreen(),
-          '/cart': (context) => const CartScreen(),
         },
       ),
     );
